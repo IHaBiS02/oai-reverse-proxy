@@ -399,7 +399,7 @@ function addKeyToAggregates(k: KeyPoolKey) {
       // Ignore revoked keys for aws logging stats, but include keys where the
       // logging status is unknown.
       const countAsLogged =
-        k.lastChecked && !k.isDisabled && k.awsLoggingStatus !== "enabled";
+        k.lastChecked && !k.isDisabled && k.awsLoggingStatus === "enabled";
       increment(modelStats, `aws-claude__awsLogged`, countAsLogged ? 1 : 0);
       break;
     }

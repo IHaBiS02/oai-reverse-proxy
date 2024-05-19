@@ -48,7 +48,7 @@ router.get("/anti-abuse", (_req, res) => {
 
   res.render("admin_anti-abuse", {
     captchaMode: config.captchaMode,
-    difficulty: config.captchaPoWDifficultyLevel,
+    difficulty: config.powDifficultyLevel,
     whitelists: wl.map((w) => ({
       name: w[0],
       mode: "whitelist",
@@ -338,7 +338,7 @@ router.post("/maintenance", (req, res) => {
       if (!selected || !valid.includes(selected)) {
         throw new HttpError(400, "Invalid difficulty" + selected);
       }
-      config.captchaPoWDifficultyLevel = selected;
+      config.powDifficultyLevel = selected;
       break;
     }
     case "generateTempIpReport": {

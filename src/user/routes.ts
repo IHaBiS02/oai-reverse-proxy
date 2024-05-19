@@ -2,7 +2,7 @@ import express, { Router } from "express";
 import { injectCsrfToken, checkCsrfToken } from "../shared/inject-csrf";
 import { browseImagesRouter } from "./web/browse-images";
 import { selfServiceRouter } from "./web/self-service";
-import { powCaptchaRouter } from "./web/pow-captcha";
+import { powRouter } from "./web/pow-captcha";
 import { injectLocals } from "../shared/inject-locals";
 import { withSession } from "../shared/with-session";
 import { config } from "../config";
@@ -20,7 +20,7 @@ if (config.showRecentImages) {
   userRouter.use(browseImagesRouter);
 }
 if (config.captchaMode !== "none") {
-  userRouter.use("/captcha", powCaptchaRouter);
+  userRouter.use("/captcha", powRouter);
 }
 userRouter.use(selfServiceRouter);
 

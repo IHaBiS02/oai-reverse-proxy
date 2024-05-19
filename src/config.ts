@@ -112,21 +112,21 @@ type Config = {
    * Which captcha verification mode to use. Requires `user_token` gatekeeper.
    * Allows users to automatically obtain a token by solving a captcha.
    * - `none`: No captcha verification; tokens are issued manually.
-   * - `proof_of_work`: Users must solve an Argon2 PoW captcha to obtain a
+   * - `proof_of_work`: Users must solve an Argon2 proof of work to obtain a
    *    temporary usertoken valid for a limited period.
    */
   captchaMode: "none" | "proof_of_work";
   /**
-   * Duration in hours for which a captcha-issued temporary user token is valid.
+   * Duration in hours for which a PoW-issued temporary user token is valid.
    */
-  captchaTokenHours: number;
-  /** Maximum number of IPs allowed per captcha-issued temporary user token. */
-  captchaTokenMaxIps: number;
+  powTokenHours: number;
+  /** Maximum number of IPs allowed per PoW-issued temporary user token. */
+  powTokenMaxIps: number;
   /**
-   * Difficulty level for the PoW captcha. Refer to docs/pow-captcha.md for
+   * Difficulty level for the proof-of-work. Refer to docs/pow-captcha.md for
    * details on the available modes.
    */
-  captchaPoWDifficultyLevel: "low" | "medium" | "high" | "extreme";
+  powDifficultyLevel: "low" | "medium" | "high" | "extreme";
   /** Per-user limit for requests per minute to text and chat models. */
   textModelRateLimit: number;
   /** Per-user limit for requests per minute to image generation models. */
@@ -319,9 +319,9 @@ export const config: Config = {
   maxIpsPerUser: getEnvWithDefault("MAX_IPS_PER_USER", 0),
   maxIpsAutoBan: getEnvWithDefault("MAX_IPS_AUTO_BAN", false),
   captchaMode: getEnvWithDefault("CAPTCHA_MODE", "none"),
-  captchaTokenHours: getEnvWithDefault("CAPTCHA_TOKEN_HOURS", 24),
-  captchaTokenMaxIps: getEnvWithDefault("CAPTCHA_TOKEN_MAX_IPS", 2),
-  captchaPoWDifficultyLevel: getEnvWithDefault("CAPTCHA_POW_DIFFICULTY_LEVEL", "low"),
+  powTokenHours: getEnvWithDefault("POW_TOKEN_HOURS", 24),
+  powTokenMaxIps: getEnvWithDefault("POW_TOKEN_MAX_IPS", 2),
+  powDifficultyLevel: getEnvWithDefault("POW_DIFFICULTY_LEVEL", "low"),
   firebaseRtdbUrl: getEnvWithDefault("FIREBASE_RTDB_URL", undefined),
   firebaseKey: getEnvWithDefault("FIREBASE_KEY", undefined),
   textModelRateLimit: getEnvWithDefault("TEXT_MODEL_RATE_LIMIT", 4),

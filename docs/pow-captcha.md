@@ -1,4 +1,4 @@
-# Proof-of-work Captcha Verification
+# Proof-of-work Verification
 
 You can require users to complete a proof-of-work before they can access the
 proxy. This can increase the cost of denial of service attacks and slow down
@@ -12,17 +12,17 @@ the solution and issue a temporary token for that user.
 
 ## Configuration
 
-To enable the proof-of-work captcha, set the following environment variables:
+To enable proof-of-work verification, set the following environment variables:
 
 ```
 GATEKEEPER=user_token
 CAPTCHA_MODE=proof_of_work
 # Validity of the token in hours
-CAPTCHA_TOKEN_HOURS=24
+POW_TOKEN_HOURS=24
 # Max number of IPs that can use a user_token issued via proof-of-work
-CAPTCHA_TOKEN_MAX_IPS=2
+POW_TOKEN_MAX_IPS=2
 # The difficulty level of the proof-of-work challenge
-CAPTCHA_POW_DIFFICULTY_LEVEL=low
+POW_DIFFICULTY_LEVEL=low
 ```
 
 ## Difficulty Levels
@@ -86,7 +86,7 @@ also significantly reduce hash rates on mobile devices.
 
 - Intel Core i9-13900K (Chrome): 33-35 H/s
 - Intel Core i9-13900K (Firefox): 29-32 H/s
-- Intel Core i9-13900K (Chrome, in VM limited to 4 cores): 12.2 - 13.0 H/s 
+- Intel Core i9-13900K (Chrome, in VM limited to 4 cores): 12.2 - 13.0 H/s
 - iPad Pro (M2) (Safari, 6 workers): 8.0 - 10 H/s
   - Thermal throttles early. 8 cores is normal concurrency, but unstable.
 - iPhone 13 Pro (Safari): 4.0 - 4.6 H/s

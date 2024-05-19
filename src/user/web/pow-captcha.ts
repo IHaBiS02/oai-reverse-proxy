@@ -102,7 +102,7 @@ setInterval(() => {
 }, 1000);
 
 function generateChallenge(clientIp?: string, token?: string): Challenge {
-  let workFactor = workFactors[config.captchaPoWDifficultyLevel];
+  let workFactor = workFactors[config.powDifficultyLevel];
   if (token) {
     // Challenge difficulty is reduced for token refreshes
     workFactor = Math.floor(workFactor / 2);
@@ -197,7 +197,9 @@ router.post("/challenge", (req, res) => {
     if (verifyTokenRefreshable(refreshToken, req.log)) {
       res
         .status(400)
-        .json({ error: "Not allowed to refresh that token; request a new one" });
+        .json({
+          error: "Not allowed to refresh that token; request a new one",
+        });
       return;
     }
     const challenge = generateChallenge(req.ip, refreshToken);
@@ -285,7 +287,7 @@ router.post("/verify", async (req, res) => {
   if (challenge.token) {
     const user = getUser(challenge.token);
     if (user) {
-      user.expiresAt = Date.now() + config.captchaTokenHours * 60 * 60 * 1000;
+      user.expiresAt = Date.now() + config.powTokenHours * 60 * 60 * 1000;
       upsertUser(user);
       req.log.info(
         { token: `...${challenge.token.slice(-5)}` },
@@ -296,17 +298,17 @@ router.post("/verify", async (req, res) => {
   } else {
     const token = createUser({
       type: "temporary",
-      expiresAt: Date.now() + config.captchaTokenHours * 60 * 60 * 1000,
+      expiresAt: Date.now() + config.powTokenHours * 60 * 60 * 1000,
     });
     upsertUser({
       token,
       ip: [ip],
-      maxIps: config.captchaTokenMaxIps,
+      maxIps: config.powTokenMaxIps,
       meta: { refreshable: true },
     });
     req.log.info(
       { ip, token: `...${token.slice(-5)}` },
-      "Captcha token issued"
+      "Proof-of-work token issued"
     );
     return res.json({ success: true, token });
   }
@@ -315,10 +317,10 @@ router.post("/verify", async (req, res) => {
 router.get("/", (_req, res) => {
   res.render("user_request_token", {
     keyRequired: !!config.proxyKey,
-    difficultyLevel: config.captchaPoWDifficultyLevel,
-    tokenLifetime: config.captchaTokenHours,
-    tokenMaxIps: config.captchaTokenMaxIps,
+    difficultyLevel: config.powDifficultyLevel,
+    tokenLifetime: config.powTokenHours,
+    tokenMaxIps: config.powTokenMaxIps,
   });
 });
 
-export { router as powCaptchaRouter };
+export { router as powRouter };
