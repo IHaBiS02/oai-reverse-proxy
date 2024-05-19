@@ -22,4 +22,22 @@ export interface LogBackend {
   appendBatch: (batch: PromptLogEntry[]) => Promise<void>;
 }
 
+export interface EventLogEntry {
+  model: string;
+  family: string;
+  /**
+   * Prompt hashes are SHA256.
+   * Each message is stripped of whitespace.
+   * Then joined by <|im_sep|>
+   * Then hashed.
+   * First hash: Full prompt.
+   * Next {trim} hashes: Hashes with last 1-{trim} messages removed.
+   */
+  hashes: string[];
+  userToken: string;
+  /* Usage for given family after this request. */
+  usage: number;
+}
+
 export * as logQueue from "./log-queue";
+export * as eventLogger from "./event-logger";

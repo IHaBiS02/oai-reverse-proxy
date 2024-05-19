@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import type firebase from "firebase-admin";
+import type sqlite3 from "better-sqlite3";
 import path from "path";
 import pino from "pino";
 import type { ModelFamily } from "./shared/models";
@@ -146,6 +147,9 @@ type Config = {
    * key and can't attach the policy, you can set this to true.
    */
   allowAwsLogging?: boolean;
+  eventLogging?: boolean;
+  eventLoggingUrl?: string;
+  eventLoggingTrim?: number;
   /** Whether prompts and responses should be logged to persistent storage. */
   promptLogging?: boolean;
   /** Which prompt logging backend to use. */
@@ -280,6 +284,9 @@ export const config: Config = {
   proxyKey: getEnvWithDefault("PROXY_KEY", ""),
   adminKey: getEnvWithDefault("ADMIN_KEY", ""),
   serviceInfoPassword: getEnvWithDefault("SERVICE_INFO_PASSWORD", ""),
+  eventLogging: getEnvWithDefault("EVENT_LOGGING", false),
+  eventLoggingUrl: getEnvWithDefault("EVENT_LOGGING_URL", undefined),
+  eventLoggingTrim: getEnvWithDefault("EVENT_LOGGING_TRIM", 10),
   gatekeeper: getEnvWithDefault("GATEKEEPER", "none"),
   gatekeeperStore: getEnvWithDefault("GATEKEEPER_STORE", "memory"),
   maxIpsPerUser: getEnvWithDefault("MAX_IPS_PER_USER", 0),
@@ -434,6 +441,10 @@ export async function assertConfigIsValid() {
     );
   }
 
+  if (config.eventLogging && !config.eventLoggingUrl) {
+    throw new Error("Event logging requires `EVENT_LOGGING_URL` to be set.");
+  }
+
   // Ensure forks which add new secret-like config keys don't unwittingly expose
   // them to users.
   for (const key of getKeys(config)) {
@@ -449,6 +460,7 @@ export async function assertConfigIsValid() {
   }
 
   await maybeInitializeFirebase();
+  await maybeInitializeEventLogging();
 }
 
 /**
@@ -481,6 +493,9 @@ export const OMITTED_KEYS = [
   "googleSheetsKey",
   "firebaseKey",
   "firebaseRtdbUrl",
+  "eventLogging",
+  "eventLoggingUrl",
+  "eventLoggingTrim",
   "gatekeeperStore",
   "maxIpsPerUser",
   "blockedOrigins",
@@ -572,6 +587,7 @@ function getEnvWithDefault<T>(env: string | string[], defaultValue: T): T {
 }
 
 let firebaseApp: firebase.app.App | undefined;
+let eventDatabase: sqlite3.Database | undefined;
 
 async function maybeInitializeFirebase() {
   if (!config.gatekeeperStore.startsWith("firebase")) {
@@ -595,6 +611,35 @@ export function getFirebaseApp(): firebase.app.App {
     throw new Error("Firebase app not initialized.");
   }
   return firebaseApp;
+}
+
+async function maybeInitializeEventLogging() {
+  if (!config.eventLogging) {
+    return;
+  }
+
+  const sqlite3 = await import("better-sqlite3");
+  const db = sqlite3.default(config.eventLoggingUrl!);
+
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS events (
+      date TEXT PRIMARY KEY NOT NULL,
+      model TEXT NOT NULL,
+      family TEXT NOT NULL,
+      hashes TEXT NOT NULL,
+      userToken TEXT NOT NULL,
+      usage INTEGER NOT NULL
+    )`
+  ).run();
+
+  eventDatabase = db;
+}
+
+export function getEventDatabase(): sqlite3.Database {
+  if (!eventDatabase) {
+    throw new Error("Event database not initialized.");
+  }
+  return eventDatabase;
 }
 
 function parseCsv(val: string): string[] {
